@@ -1,15 +1,39 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Identity.Oli.Controllers;
 
-public class HelloWorld: Controller
+[ApiController]
+[Route("hello")]
+public class HelloWorld: ControllerBase
 {
-    [HttpGet("hello")]
+    [Authorize(Policy = "ReadPolicy")]
+    [HttpGet]
     public IActionResult Index()
     {
-        return Ok( new 
+        return Ok(new 
         {
-            Ping = "HelloWorld"
+            Message = "HelloWorld"
+        });
+    }
+    
+    [Authorize(Policy = "WritePolicy")]
+    [HttpPost("write")]
+    public IActionResult Write()
+    {
+        return Ok(new 
+        {
+            Message = "Write access granted!"
+        });
+    }
+    
+    [Authorize(Policy = "AdminPolicy")]
+    [HttpGet("admin")]
+    public IActionResult Admin()
+    {
+        return Ok(new 
+        {
+            Message = "Admin access granted!"
         });
     }
 }

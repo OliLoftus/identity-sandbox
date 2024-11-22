@@ -30,6 +30,12 @@ public class CustomerController : ControllerBase
     [HttpPost]
     public IActionResult CreateCustomer([FromBody] Customer newCustomer)
     {
+        if (!ModelState.IsValid)
+        {
+            // If validation fails, return a 400 Bad Request with validation errors
+            return BadRequest(ModelState);
+        }
+        
         // Generates GUID for customer ID.
         newCustomer.Id = Guid.NewGuid();
         // Adds customer to Customers list.
@@ -48,6 +54,11 @@ public class CustomerController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult UpdateCustomer(Guid id, [FromBody] Customer updatedCustomer)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        
         // Searches repository for existing customer by id.
         var customer = CustomerRepository.Customers.FirstOrDefault(customer => customer.Id == id);
         

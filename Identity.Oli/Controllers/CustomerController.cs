@@ -62,4 +62,32 @@ public class CustomerController : ControllerBase
         // Returns 204 No Content to indicate update was successful
         return NoContent();
     }
+    
+    // DELETE: /customer/{id}
+    // Deleted a customer by their unique id
+    [HttpDelete("{id}")]
+    public IActionResult DeleteCustomer(Guid id)
+    {
+        // Searches for customer by id
+        var customer = CustomerRepository.Customers.FirstOrDefault(customer => customer.Id == id);
+        
+        // Returns 404 Not Found if the customer doesn't exist
+        if (customer == null)
+            return NotFound();
+        
+        // Removes customer from repository
+        CustomerRepository.Customers.Remove(customer);
+        
+        // Returns 204 No Content to indicate delete was successful
+        return NoContent();
+    }
+    
+    // GET: /customer
+    // Gets all customers
+    [HttpGet]
+    public IActionResult GetAllCustomers()
+    {
+        // Returns 200 OK with list of customers
+        return Ok(CustomerRepository.Customers);
+    }
 }

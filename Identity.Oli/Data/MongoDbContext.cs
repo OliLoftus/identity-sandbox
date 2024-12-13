@@ -17,6 +17,6 @@ public class MongoDbContext
         _database = client.GetDatabase(configuration["DatabaseName"]);
     }
     
-    // Property to access the "Customers" collection in the db
-    public IMongoCollection<Customer> Customers => _database.GetCollection<Customer>("Customers");
+    // Property to access the "Goals" collection in the db
+    public IMongoCollection<GoalModel> Goals => _database.GetCollection<GoalModel>("Goals");
 }

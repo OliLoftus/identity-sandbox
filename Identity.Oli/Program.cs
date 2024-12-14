@@ -1,4 +1,6 @@
+using Identity.Oli.Data;
 using Identity.Oli.QuickStart;
+using Identity.Oli.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,11 @@ builder.Services.AddIdentityServer()
     .AddInMemoryClients(Config.Clients)
     .AddInMemoryApiScopes(Config.ApiScopes)
     .AddDeveloperSigningCredential();
+
+// Dependency Injection for application services
+builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddScoped<IGoalsRepository, GoalsRepository>();
+builder.Services.AddScoped<GoalService>();
 
 builder.Services.AddAuthorization(options =>
 {

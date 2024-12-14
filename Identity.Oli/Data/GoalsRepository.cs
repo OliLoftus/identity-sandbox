@@ -3,15 +3,16 @@ using MongoDB.Driver;
 
 namespace Identity.Oli.Data;
 
+// Handles all database operations for the Goals collection.
 public class GoalsRepository(MongoDbContext context) : IGoalsRepository
 {
-        private readonly IMongoCollection<GoalModel> _goals = context.Goals;
-
+        private readonly IMongoCollection<GoalModel> _goals = context.Goals; // MongoDB collection for goals
+        
         public async Task<List<GoalModel>> GetAllAsync()
         {
                 return await _goals.Find(_ => true).ToListAsync();
         }
-
+        
         public async Task<GoalModel> GetByIdAsync(Guid id)
         {
                 return await _goals.Find(goal => goal.Id == id).FirstOrDefaultAsync();

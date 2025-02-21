@@ -25,7 +25,15 @@ public class GoalsRepository(MongoDbContext context) : IGoalsRepository
 
         public async Task UpdateAsync(Guid id, GoalModel updatedGoal)
         {
-                await _goals.ReplaceOneAsync(goal => goal.Id == id, updatedGoal);
+                var update = Builders<GoalModel>.Update
+                        .Set(goal => goal.Title, updatedGoal.Title)
+                        .Set(goal => goal.Description, updatedGoal.Description)
+                        .Set(goal => goal.Category, updatedGoal.Category)
+                        .Set(goal => goal.DueDate, updatedGoal.DueDate)
+                        .Set(goal => goal.IsCompleted, updatedGoal.IsCompleted)
+                        .Set(goal => goal.Progress, updatedGoal.Progress);
+
+                await _goals.UpdateOneAsync(goal => goal.Id == id, update);
         }
 
         public async Task DeleteAsync(Guid id)

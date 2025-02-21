@@ -19,7 +19,7 @@ builder.Services.AddIdentityServer()
 // Dependency Injection for application services
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<IGoalsRepository, GoalsRepository>();
-builder.Services.AddScoped<GoalService>();
+builder.Services.AddScoped<IGoalService, GoalService>();
 
 builder.Services.AddAuthorization(options =>
 {

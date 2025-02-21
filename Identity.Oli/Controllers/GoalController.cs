@@ -2,6 +2,7 @@ using Identity.Oli.Data;
 using Identity.Oli.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using Identity.Oli.Models.Responses;
 using Identity.Oli.Services;
 
 namespace Identity.Oli.Controllers;
@@ -12,12 +13,14 @@ namespace Identity.Oli.Controllers;
 [Route("goals")]
 public class GoalController : ControllerBase
 {
-    private readonly GoalService _goalService; // Handles business logic for goals.
-    
+    private readonly IGoalService _goalService; // Handles business logic for goals.
+    private readonly ILogger<GoalController> _logger;
+
     // Constructor: Injects GoalService using dependency injection.
-    public GoalController(GoalService goalService)
+    public GoalController(IGoalService goalService, ILogger<GoalController> logger)
     {
-        _goalService = goalService;
+        ArgumentNullException.ThrowIfNull(_goalService = goalService, (nameof(goalService)));
+        ArgumentNullException.ThrowIfNull(_logger = logger, (nameof(logger)));
     }
     // GET: /goals
     // This endpoint gets all goals.
@@ -25,9 +28,11 @@ public class GoalController : ControllerBase
     public async Task <IActionResult> GetAllGoals()
     {
         // Calls the service layer to fetch all goals from the database.
-        var goals = await _goalService.GetAllGoalsAsync();
+        var goals = await _goalService.GetGoalsAsync();
+
+        _logger.LogInformation($"Goal count: {goals.Count}");
         // If found returns 200 OK response with customer's data
-        return Ok(goals);
+        return Ok(new ApiResponse<List<GoalModel>>("Success", "Goals retrieved successfully.", goals));
     }
     
     // GET: /goals/{id}
@@ -40,37 +45,53 @@ public class GoalController : ControllerBase
         // If the goal is not found, returns a 404 Not Found response.
         if (goal == null)
         {
-            return NotFound();
+            _logger.LogError($"Goal with id: {id} not found");
+
+            return NotFound(new ApiResponse<GoalModel>("Error", "Goal not found.", null));
         }
-        return Ok(goal);
+        _logger.LogInformation($"Goal with id: {id} was found.");
+
+        return Ok(new ApiResponse<GoalModel>("Success", "Goal retrieved successfully.", goal));
     }
     
-    // POST: /goal/{id}
+    // POST: /goal
     // This endpoint is used to create a new goal.
     [HttpPost]
-    public async Task<IActionResult> CreateGoal([FromBody] GoalModel newGoal)
+    public async Task<IActionResult> CreateGoal([FromBody] GoalRequest request)
     {
-        await _goalService.AddGoalAsync(newGoal);
+        var goal = GoalModel.Create(request.Title, request.Description, request.Category, request.DueDate, request.IsCompleted);
+
+        await _goalService.AddGoalAsync(request.Title, request.Description, request.Category, request.DueDate, request.IsCompleted);
+
+        _logger.LogInformation($"Goal created: {goal.Title} - {goal.Description}");
         // Returns a 201 Created response with a Location header pointing to the newly created goal.
-        return CreatedAtAction(nameof(GetGoal), new { id = newGoal.Id }, newGoal);
+        return CreatedAtAction(nameof(GetGoal), new { id = goal.Id },
+            new ApiResponse<GoalModel>("Success", "Goal created successfully.", goal));
     }
     
     // PUT: /goals/{id}
     // Updates a goal.
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateGoal(Guid id, [FromBody] GoalModel updatedGoal)
+    public async Task<IActionResult> UpdateGoal(Guid id, [FromBody] GoalRequest request)
     {
-        try
-        {
-            await _goalService.UpdateGoalAsync(id, updatedGoal);
-            // Returns a 204 No Content response to indicate success.
-            return NoContent();
-        }
-        catch (KeyNotFoundException exception)
-        {
-            // If the goal is not found, returns a 404 Not Found response with an error message.
-            return NotFound(new { message = exception.Message });
-        }
+            try
+            {
+                var result = await _goalService.UpdateGoalAsync(id, request.Title,
+                    request.Description,
+                    request.Category,
+                    request.DueDate,
+                    request.IsCompleted);
+
+                _logger.LogInformation($"Goal updated: {request.Title} - {request.Description}");
+
+                return Ok(new ApiResponse<GoalModel>("Success", "Goal updated successfully.", result));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Goal with id: {id} not found");
+                // If the goal is not found, returns a 404 Not Found response with an error message.
+                return NotFound(new ApiResponse<GoalModel>("Error", ex.Message, null));
+            }
     }
     // DELETE: /goals/{id}
     // Deletes a goal by  id
@@ -80,11 +101,16 @@ public class GoalController : ControllerBase
         try
         {
             await _goalService.DeleteGoalAsync(id);
-            return NoContent();
+
+            _logger.LogInformation($"Goal deleted: {id}");
+
+            return Ok(new ApiResponse<GoalModel>("Success", "Goal deleted successfully.", null));
         }
         catch (KeyNotFoundException exception)
         {
-            return NotFound(new { message = exception.Message });
+            _logger.LogWarning($"Goal not found: {exception.Message}");
+
+            return NotFound(new ApiResponse<GoalModel>("Error", "Goal not found.", null));
         }
     }
     
@@ -97,11 +123,14 @@ public class GoalController : ControllerBase
         {
             // Calls the AddProgress method in the GoalService
             await _goalService.AddProgressAsync(goalId, progress);
-            return Ok(progress); // Returns the added progress
+            _logger.LogInformation($"Progress added: {goalId}");
+            return Ok(new ApiResponse<ProgressUpdate>("Success", "Progress added successfully.", progress)); // Returns the added progress
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            _logger.LogWarning($"Goal not found: {ex.Message}");
+
+            return NotFound(new ApiResponse<object>("Error", "Goal not found.", null));
         }
     }
     
@@ -110,12 +139,14 @@ public class GoalController : ControllerBase
     [HttpGet("{id}/progress")]
     public async Task<IActionResult> GetProgressUpdates(Guid id)
     {
-        var goal = await _goalService.GetGoalByIdAsync(id);
-        if (goal == null)
-        {
-            return NotFound(new { message = "Goal not found" });
-        }
+            var goal = await _goalService.GetGoalByIdAsync(id);
+            if (goal == null)
+            {
+                _logger.LogInformation($"Goal with id: {id} was found.");
 
-        return Ok(goal.Progress); // Return all progress updates for the specified goal
+                return NotFound(new ApiResponse<List<ProgressUpdate>>("Error", "Goal not found.", null));
+            }
+
+            return Ok(new ApiResponse<List<ProgressUpdate>>("Success", "Progress retrieved successfully", goal.Progress)); // Return all progress updates for the specified goal
     }
 }

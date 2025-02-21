@@ -1,0 +1,26 @@
+# IDE/Editor
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build Artifacts
+/bin/
+/obj/
+
+# Application Config
+appsettings.json
+appsettings.Development.json
+
+# OS-Specific
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Dependency Directories
+/node_modules/
+.env

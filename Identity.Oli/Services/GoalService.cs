@@ -3,19 +3,19 @@ using Identity.Oli.Models;
 
 namespace Identity.Oli.Services;
 
-public class GoalService
+public class GoalService : IGoalService
 {
     private readonly IGoalsRepository _goalsRepository; // Repository for data access stored in private field.
     // Constructor: Injects the IGoalRepository dependency.
     public GoalService(IGoalsRepository goalsRepository)
     {
-        _goalsRepository = goalsRepository;
+        _goalsRepository = goalsRepository ?? throw new ArgumentNullException(nameof(goalsRepository));
     }
     // Retrieves all goals from the db.
-    public async Task<List<GoalModel>> GetAllGoalsAsync()
+    public async Task<List<GoalModel>> GetGoalsAsync()
     {
         var goals = await _goalsRepository.GetAllAsync();
-        Console.WriteLine($"Fetched {goals.Count} goals from repository.");
+
         return goals;
     }
     
@@ -26,22 +26,26 @@ public class GoalService
     }
     
     // Add a new goal to the db.
-    public async Task AddGoalAsync(GoalModel goal)
+    public async Task AddGoalAsync(string title, string description, string category, DateTime dueDate, bool isCompleted)
     {
-        goal.Id = Guid.NewGuid(); // Assign unique Id
-        await _goalsRepository.CreateAsync(goal);
+        var newGoal = GoalModel.Create(title, description, category, dueDate, isCompleted);
+        await _goalsRepository.CreateAsync(newGoal);
     }
     
     // Update existing goal.
-    public async Task UpdateGoalAsync(Guid id, GoalModel updatedGoal)
+    public async Task<GoalModel> UpdateGoalAsync(Guid id, string title, string description, string category, DateTime dueDate, bool isCompleted)
     {
         var existingGoal = await _goalsRepository.GetByIdAsync(id); // Fetch the goal by Id.
         if (existingGoal == null)
         {
             throw new KeyNotFoundException($"Goal with id: {id} not found");
         }
-        updatedGoal.Id = existingGoal.Id; // Explicitly set new Id.
-        await _goalsRepository.UpdateAsync(id, updatedGoal);
+
+        existingGoal.Update(title, description, category, dueDate, isCompleted);
+
+        await _goalsRepository.UpdateAsync(id, existingGoal);
+
+        return existingGoal;
     }
 
     // Delete a goal by its Id.

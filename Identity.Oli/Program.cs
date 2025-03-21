@@ -1,11 +1,18 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Identity.Oli.Data;
 using Identity.Oli.QuickStart;
 using Identity.Oli.Services;
+using Identity.Oli.Validation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<GoalRequestValidator>();
 
 builder.Services.AddEndpointsApiExplorer();
 

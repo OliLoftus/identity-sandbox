@@ -20,23 +20,20 @@ public class GoalModel
     [BsonRepresentation(BsonType.String)]
     public Guid Id { get; private set; } // prevents external modification
 
-    [Required]
-    [StringLength(100, MinimumLength = 1)]
     public string Title { get; private set; }
 
-    [StringLength(500)]
     public string Description { get; private set; }
 
-    [Required]
     public string Category { get; private set; }
 
-    [Required]
-    [FutureDate]
     public DateTime DueDate { get; private set; }
 
     public bool IsCompleted { get; private set; }
 
     public List<ProgressUpdate> Progress { get; private set; } = new(); // List of progress updates
+
+
+
 
     // Factory method for creating a new GoalModel instance
     // Ensure proper initialization
@@ -61,5 +58,12 @@ public class GoalModel
         Category = category;
         DueDate = dueDate;
         IsCompleted = isCompleted;
+    }
+
+    public void AddProgress(ProgressUpdate progress)
+    {
+        progress.Id = Guid.NewGuid();
+        progress.Date = DateTime.UtcNow;
+        Progress.Add(progress);
     }
 }

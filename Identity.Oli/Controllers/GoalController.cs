@@ -1,7 +1,6 @@
-using Identity.Oli.Data;
 using Identity.Oli.Models;
+using Identity.Oli.Models.Requests;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using Identity.Oli.Models.Responses;
 using Identity.Oli.Services;
 
@@ -123,7 +122,7 @@ public class GoalController : ControllerBase
         {
             // Calls the AddProgress method in the GoalService
             await _goalService.AddProgressAsync(goalId, progress);
-            _logger.LogInformation($"Progress added: {goalId}");
+            _logger.LogInformation($"Progress added to: {goalId}");
             return Ok(new ApiResponse<ProgressUpdate>("Success", "Progress added successfully.", progress)); // Returns the added progress
         }
         catch (KeyNotFoundException ex)
@@ -144,7 +143,7 @@ public class GoalController : ControllerBase
             {
                 _logger.LogInformation($"Goal with id: {id} was found.");
 
-                return NotFound(new ApiResponse<List<ProgressUpdate>>("Error", "Goal not found.", null));
+                return NotFound(new ApiResponse<List<ProgressUpdate>>("Error", "Goal was not found.", null));
             }
 
             return Ok(new ApiResponse<List<ProgressUpdate>>("Success", "Progress retrieved successfully", goal.Progress)); // Return all progress updates for the specified goal

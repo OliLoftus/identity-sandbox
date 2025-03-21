@@ -31,7 +31,7 @@ public class GoalService : IGoalService
         var newGoal = GoalModel.Create(title, description, category, dueDate, isCompleted);
         await _goalsRepository.CreateAsync(newGoal);
     }
-    
+
     // Update existing goal.
     public async Task<GoalModel> UpdateGoalAsync(Guid id, string title, string description, string category, DateTime dueDate, bool isCompleted)
     {
@@ -68,10 +68,7 @@ public class GoalService : IGoalService
             throw new KeyNotFoundException($"Goal with id {goalId} not found.");
         }
 
-        progress.Id = Guid.NewGuid();
-        progress.Date = DateTime.UtcNow; // Automatically set the date
-        goal.Progress.Add(progress);
-
+        goal.AddProgress(progress);
         await _goalsRepository.UpdateAsync(goalId, goal);
     }
     

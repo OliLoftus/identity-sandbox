@@ -27,6 +27,7 @@ builder.Services.AddIdentityServer()
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<IGoalsRepository, GoalsRepository>();
 builder.Services.AddScoped<IGoalService, GoalService>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 builder.Services.AddAuthorization(options =>
 {

@@ -3,9 +3,11 @@ using Identity.Oli.Models.Requests;
 using Microsoft.AspNetCore.Mvc;
 using Identity.Oli.Models.Responses;
 using Identity.Oli.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Identity.Oli.Controllers;
-
+// All actions require a valid JWT
+[Authorize]
 // Marks this class as a Web API controller, enabling ASP.NET Core features like model validation and routing.
 [ApiController]
 // Sets the base route for all endpoints in this controller to /goals.

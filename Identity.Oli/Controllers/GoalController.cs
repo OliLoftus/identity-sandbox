@@ -3,13 +3,13 @@ using Identity.Oli.Models.Requests;
 using Microsoft.AspNetCore.Mvc;
 using Identity.Oli.Models.Responses;
 using Identity.Oli.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Identity.Oli.Controllers;
-
-// Marks this class as a Web API controller, enabling ASP.NET Core features like model validation and routing.
+// All actions require a valid JWT
 [ApiController]
-// Sets the base route for all endpoints in this controller to /goals.
-[Route("goals")]
+[Route("api/[controller]")]
+[Authorize] // Protect all actions in this controller
 public class GoalController : ControllerBase
 {
     private readonly IGoalService _goalService; // Handles business logic for goals.
@@ -24,6 +24,7 @@ public class GoalController : ControllerBase
     // GET: /goals
     // This endpoint gets all goals.
     [HttpGet]
+    [Authorize(Policy = "ReadPolicy")]
     public async Task <IActionResult> GetAllGoals()
     {
         // Calls the service layer to fetch all goals from the database.
@@ -56,6 +57,7 @@ public class GoalController : ControllerBase
     // POST: /goal
     // This endpoint is used to create a new goal.
     [HttpPost]
+    [Authorize(Policy = "WritePolicy")]
     public async Task<IActionResult> CreateGoal([FromBody] GoalRequest request)
     {
         var goal = GoalModel.Create(request.Title, request.Description, request.Category, request.DueDate, request.IsCompleted);
@@ -95,6 +97,7 @@ public class GoalController : ControllerBase
     // DELETE: /goals/{id}
     // Deletes a goal by  id
     [HttpDelete("{id}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> DeleteGoal(Guid id)
     {
         try

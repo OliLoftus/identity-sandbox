@@ -11,10 +11,10 @@ export const authSettings: UserManagerSettings = {
     client_id: 'spa-client',
 
     // The URL to redirect to after the user logs in
-    redirect_uri: 'https://localhost:5173/callback',
+    redirect_uri: 'http://localhost:5173/callback',
 
     // The URL to redirect to after the user logs out
-    post_logout_redirect_uri: 'https://localhost:5173/',
+    post_logout_redirect_uri: 'http://localhost:5173/',
 
     // Using the Authorization Code Flow with PKCE
     response_type: 'code',

@@ -24,9 +24,9 @@ public static class Config
                 RequirePkce = true,
                 RequireClientSecret = false,
 
-                RedirectUris = { "https://localhost:5173/callback" },
-                PostLogoutRedirectUris = { "https://localhost:5173" },
-                AllowedCorsOrigins = { "https://localhost:5173" },
+                RedirectUris = { "http://localhost:5173/callback" },
+                PostLogoutRedirectUris = { "http://localhost:5173" },
+                AllowedCorsOrigins = { "http://localhost:5173" },
 
                 AllowedScopes = { "openid", "profile", "api1.read" },
                 AllowAccessTokensViaBrowser = true

@@ -10,44 +10,42 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var spaClientUrl = "http://localhost:5173";
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(spaClientUrl)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+// 1. Add authentication services
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        // The URL of your IdentityServer
+        options.Authority = "https://localhost:7040";
+
+        // The name of the API resource you defined in Config.cs
+        options.Audience = "api1";
+    });
+
 // Add services to the container.
 builder.Services.AddControllers();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<GoalRequestValidator>();
-
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerGen();
-
-builder.Services.AddIdentityServer()
-    .AddInMemoryClients(Config.Clients)
-    .AddInMemoryApiScopes(Config.ApiScopes)
-    .AddDeveloperSigningCredential();
 
 // Dependency Injection for application services
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<IGoalsRepository, GoalsRepository>();
 builder.Services.AddScoped<IGoalService, GoalService>();
-builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddAuthentication("Bearer")
-    .AddJwtBearer("Bearer", options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException()))
-        };
-    });
 
 builder.Services.AddAuthorization(options =>
 {
@@ -59,6 +57,8 @@ builder.Services.AddAuthorization(options =>
         policy.RequireClaim("scope", "api1.admin"));
 });
 
+builder.Services.AddRazorPages();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -69,10 +69,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+// Apply the CORS policy
+app.UseCors();
+
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseIdentityServer();
-app.MapControllers();
 
+app.MapControllers();
 
 app.Run();

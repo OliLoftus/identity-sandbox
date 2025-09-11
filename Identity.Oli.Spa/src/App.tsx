@@ -3,9 +3,16 @@ import { useAuth } from './auth/AuthProvider';
 import './App.css';
 
 interface Goal {
-  id: number;
-  text: string;
+  id: string;
+  title: string;
+  description?: string;
 }
+
+type ApiResponse<T> = {
+  status: string;
+  message: string;
+  data: T;
+};
 
 function App() {
   const { isAuthenticated, login, logout, user, isLoading } = useAuth();
@@ -28,8 +35,8 @@ function App() {
         throw new Error(`API call failed with status: ${response.status}`);
       }
 
-      const data = await response.json();
-      setGoals(data);
+      const json: ApiResponse<Goal[]> = await response.json();
+      setGoals(json.data ?? []);
     } catch (error) {
       console.error(error);
       alert('Failed to fetch goals. Check the console for details.');
@@ -63,24 +70,15 @@ function App() {
                 <h3>Your Goals:</h3>
                 <ul>
                   {goals.map((goal) => (
-                    <li key={goal.id}>{goal.text}</li>
+                    <li key={goal.id}>
+                      {goal.title}
+                      {goal.description ? <span> — {goal.description}</span> : null}
+                    </li>
                   ))}
                 </ul>
               </div>
             )}
             <hr />
-            <h3>Access Token:</h3>
-            <pre
-              style={{
-                maxWidth: '80vw',
-                overflowWrap: 'break-word',
-                whiteSpace: 'pre-wrap',
-                textAlign: 'left',
-                fontSize: '0.7em',
-              }}
-            >
-              {user?.access_token}
-            </pre>
           </div>
         )}
       </header>

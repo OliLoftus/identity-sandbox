@@ -1,5 +1,8 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Oli", "Identity.Oli\Identity.Oli.csproj", "{1C6FBEBD-D778-4C7D-8B76-E88059FDAFBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Oli.Auth", "Identity.Oli.Auth\Identity.Oli.Auth.csproj", "{7A5FA5C8-2C44-4C8A-8A3B-F2E430AF7C65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,5 +14,9 @@ Global
 		{1C6FBEBD-D778-4C7D-8B76-E88059FDAFBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C6FBEBD-D778-4C7D-8B76-E88059FDAFBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C6FBEBD-D778-4C7D-8B76-E88059FDAFBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A5FA5C8-2C44-4C8A-8A3B-F2E430AF7C65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A5FA5C8-2C44-4C8A-8A3B-F2E430AF7C65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A5FA5C8-2C44-4C8A-8A3B-F2E430AF7C65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A5FA5C8-2C44-4C8A-8A3B-F2E430AF7C65}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

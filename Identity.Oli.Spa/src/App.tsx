@@ -8,7 +8,7 @@ interface Goal {
 }
 
 function App() {
-  const { isAuthenticated, login, logout, user } = useAuth();
+  const { isAuthenticated, login, logout, user, isLoading } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
 
   const fetchGoals = async () => {
@@ -35,6 +35,16 @@ function App() {
       alert('Failed to fetch goals. Check the console for details.');
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <p>Checking session...</p>
+        </header>
+      </div>
+    );
+  }
 
   return (
     <div className="App">

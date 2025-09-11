@@ -1,25 +1,24 @@
 import { useEffect } from 'react';
-import { UserManager } from 'oidc-client-ts';
 import { useNavigate } from 'react-router-dom';
-import { authSettings } from './auth-settings';
+import { useAuth } from './AuthProvider';
 
 const LoginCallback = () => {
     const navigate = useNavigate();
+    const { userManager } = useAuth();
 
     useEffect(() => {
         const processLoginCallback = async () => {
-            const userManager = new UserManager(authSettings);
             try {
                 await userManager.signinRedirectCallback();
-                navigate('/'); // Redirect to home page after successful login
+                navigate('/');
             } catch (error) {
                 console.error('Error during login callback:', error);
-                navigate('/'); // Or to an error page
+                navigate('/');
             }
         };
 
         processLoginCallback();
-    }, [navigate]);
+    }, [navigate, userManager]);
 
     return <div>Loading...</div>;
 };

@@ -10,7 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var spaClientUrl = "http://localhost:5173";
+var spaClientUrl = "https://localhost:5173";
 
 builder.Services.AddCors(options =>
 {

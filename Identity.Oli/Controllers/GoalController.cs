@@ -38,6 +38,7 @@ public class GoalController : ControllerBase
     // GET: api/Goal/{id}
     // This endpoint gets a goal by id
     [HttpGet("{id}")]
+    [Authorize(Policy = "ReadPolicy")]
     public async Task<IActionResult> GetGoal(Guid id)
     {
         // Calls the service layer to fetch a goal by its ID.
@@ -73,6 +74,7 @@ public class GoalController : ControllerBase
     // PUT: api/Goal/{id}
     // Updates a goal.
     [HttpPut("{id}")]
+    [Authorize(Policy = "WritePolicy")]
     public async Task<IActionResult> UpdateGoal(Guid id, [FromBody] GoalRequest request)
     {
             try
@@ -119,6 +121,7 @@ public class GoalController : ControllerBase
     // POST: api/Goal/{id}/progress
     // Adds a progress update
     [HttpPost("{goalId}/progress")]
+    [Authorize(Policy = "WritePolicy")]
     public async Task<IActionResult> AddProgress(Guid goalId, [FromBody] ProgressUpdate progress)
     {
         try
@@ -139,12 +142,13 @@ public class GoalController : ControllerBase
     // GET: api/Goal/{id}/progress
     // Gets a goals progress updates
     [HttpGet("{id}/progress")]
+    [Authorize(Policy = "ReadPolicy")]
     public async Task<IActionResult> GetProgressUpdates(Guid id)
     {
             var goal = await _goalService.GetGoalByIdAsync(id);
             if (goal == null)
             {
-                _logger.LogInformation($"Goal with id: {id} was found.");
+                _logger.LogInformation($"Goal with id: {id} was not found.");
 
                 return NotFound(new ApiResponse<List<ProgressUpdate>>("Error", "Goal was not found.", null));
             }

@@ -35,7 +35,7 @@ public class GoalController : ControllerBase
         return Ok(new ApiResponse<List<GoalModel>>("Success", "Goals retrieved successfully.", goals));
     }
     
-    // GET: /goals/{id}
+    // GET: api/Goal/{id}
     // This endpoint gets a goal by id
     [HttpGet("{id}")]
     public async Task<IActionResult> GetGoal(Guid id)
@@ -54,7 +54,7 @@ public class GoalController : ControllerBase
         return Ok(new ApiResponse<GoalModel>("Success", "Goal retrieved successfully.", goal));
     }
     
-    // POST: /goal
+    // POST: api/Goal
     // This endpoint is used to create a new goal.
     [HttpPost]
     [Authorize(Policy = "WritePolicy")]
@@ -70,7 +70,7 @@ public class GoalController : ControllerBase
             new ApiResponse<GoalModel>("Success", "Goal created successfully.", goal));
     }
     
-    // PUT: /goals/{id}
+    // PUT: api/Goal/{id}
     // Updates a goal.
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateGoal(Guid id, [FromBody] GoalRequest request)
@@ -94,7 +94,7 @@ public class GoalController : ControllerBase
                 return NotFound(new ApiResponse<GoalModel>("Error", ex.Message, null));
             }
     }
-    // DELETE: /goals/{id}
+    // DELETE: api/Goal/{id}
     // Deletes a goal by  id
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminPolicy")]
@@ -116,7 +116,7 @@ public class GoalController : ControllerBase
         }
     }
     
-    // POST: /goals/{id}/progress
+    // POST: api/Goal/{id}/progress
     // Adds a progress update
     [HttpPost("{goalId}/progress")]
     public async Task<IActionResult> AddProgress(Guid goalId, [FromBody] ProgressUpdate progress)
@@ -136,7 +136,7 @@ public class GoalController : ControllerBase
         }
     }
     
-    // GET: /goals/{id}/progress
+    // GET: api/Goal/{id}/progress
     // Gets a goals progress updates
     [HttpGet("{id}/progress")]
     public async Task<IActionResult> GetProgressUpdates(Guid id)

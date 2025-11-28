@@ -1,59 +1,40 @@
 using Duende.IdentityServer.Services;
-using Duende.IdentityServer.Test;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using Duende.IdentityServer;
+using Identity.Oli.Auth.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace Identity.Oli.Auth.Controllers;
 
 [Route("account")]
 public class AccountController : Controller
 {
-    private readonly TestUserStore _users;
+    private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IIdentityServerInteractionService _interaction;
 
     // Inject Duende's test user store and interaction service
-    public AccountController(TestUserStore users, IIdentityServerInteractionService interaction)
+    public AccountController(
+        SignInManager<ApplicationUser> signInManager,
+        IIdentityServerInteractionService interaction)
     {
-        _users = users;
+        _signInManager = signInManager;
         _interaction = interaction;
     }
 
     // POST /account/login
     // Handles login form POST and signs the user in if valid
     [HttpPost("login")]
-    public async Task<IActionResult> Login(
-        [FromForm] string username,
-        [FromForm] string password,
-        [FromForm] string returnUrl)
+    public async Task<IActionResult> Login([FromForm] string username, [FromForm] string password, [FromForm] string returnUrl)
     {
-        Console.WriteLine($"POST login hit for user: {username}");
-
-        // Validate the username/password using the test user store
-        if (_users.ValidateCredentials(username, password))
+        var result = await _signInManager.PasswordSignInAsync(username, password, isPersistent: true, lockoutOnFailure: false);
+        if (result.Succeeded)
         {
-            var user = _users.FindByUsername(username);
+            // validate returnUrl is from IdentityServer to avoid open redirects
+            if (_interaction.IsValidReturnUrl(returnUrl))
+                return Redirect(returnUrl);
 
-            // Create an IdentityServerUser (Duende abstraction of a logged-in user)
-            var isUser = new IdentityServerUser(user.SubjectId)
-            {
-                DisplayName = user.Username
-            };
-            var props = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60) // optional
-            };
-
-            // Sign the user in — this sets the IdentityServer cookie
-            await HttpContext.SignInAsync(isUser, props);
-
-            // Redirect back to the original returnUrl from /connect/authorize
-            return Redirect(returnUrl);
+            return Redirect("~/"); // fallback
         }
 
-        // If login failed, return a 401
         return Unauthorized("Invalid login.");
     }
 

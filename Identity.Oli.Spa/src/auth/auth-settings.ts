@@ -20,5 +20,5 @@ export const authSettings: UserManagerSettings = {
     response_type: 'code',
 
     // The scopes (permissions) your client is requesting
-    scope: 'openid profile api1.read',
+    scope: 'openid profile api1.read api1.write api1.delete',
 };

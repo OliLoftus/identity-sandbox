@@ -27,13 +27,13 @@ public class HelloWorld: ControllerBase
         });
     }
     
-    [Authorize(Policy = "AdminPolicy")]
-    [HttpGet("admin")]
-    public IActionResult Admin()
+    [Authorize(Policy = "DeletePolicy")]
+    [HttpDelete("delete")]
+    public IActionResult Delete()
     {
         return Ok(new 
         {
-            Message = "Admin access granted!"
+            Message = "Delete access granted!"
         });
     }
 }

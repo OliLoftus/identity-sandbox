@@ -25,6 +25,18 @@ type PagedResponse<T> = ApiResponse<T> & {
   totalPages: number;
 };
 
+type GoalQueryState = {
+  category: string;
+  titleContains: string;
+  isCompleted: string;
+  dueFrom: string;
+  dueTo: string;
+  sortBy: string;
+  sortDir: string;
+  page: number;
+  pageSize: number;
+};
+
 function App() {
   const { isAuthenticated, login, logout, user, isLoading } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -43,34 +55,43 @@ function App() {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const buildQuery = () => {
+  const buildQuery = (queryState: GoalQueryState) => {
     const params = new URLSearchParams();
-    if (category.trim()) params.set('category', category.trim());
-    if (titleContains.trim()) params.set('titleContains', titleContains.trim());
-    if (isCompleted) params.set('isCompleted', isCompleted);
-    if (dueFrom) params.set('dueFrom', dueFrom);
-    if (dueTo) params.set('dueTo', dueTo);
-    if (sortBy) params.set('sortBy', sortBy);
-    if (sortDir) params.set('sortDir', sortDir);
-    params.set('page', String(page));
-    params.set('pageSize', String(pageSize));
+    if (queryState.category.trim()) params.set('category', queryState.category.trim());
+    if (queryState.titleContains.trim()) params.set('titleContains', queryState.titleContains.trim());
+    if (queryState.isCompleted) params.set('isCompleted', queryState.isCompleted);
+    if (queryState.dueFrom) params.set('dueFrom', queryState.dueFrom);
+    if (queryState.dueTo) params.set('dueTo', queryState.dueTo);
+    if (queryState.sortBy) params.set('sortBy', queryState.sortBy);
+    if (queryState.sortDir) params.set('sortDir', queryState.sortDir);
+    params.set('page', String(queryState.page));
+    params.set('pageSize', String(queryState.pageSize));
     return params.toString();
   };
 
-  const fetchGoals = async (nextPage?: number) => {
+  const fetchGoals = async (overrides: Partial<GoalQueryState> = {}) => {
     if (!user?.access_token) {
       alert('You must be logged in to fetch goals!');
       return;
     }
 
+    const request: GoalQueryState = {
+      category,
+      titleContains,
+      isCompleted,
+      dueFrom,
+      dueTo,
+      sortBy,
+      sortDir,
+      page,
+      pageSize,
+      ...overrides,
+    };
+
     try {
       setIsGoalsLoading(true);
       setError(null);
-      const targetPage = nextPage ?? page;
-      if (targetPage !== page) {
-        setPage(targetPage);
-      }
-      const query = buildQuery();
+      const query = buildQuery(request);
       const response = await fetch(`https://localhost:7108/api/Goal?${query}`, {
         headers: {
           Authorization: `Bearer ${user.access_token}`,
@@ -85,8 +106,8 @@ function App() {
       setGoals(json.data ?? []);
       setTotalCount(json.totalCount ?? 0);
       setTotalPages(json.totalPages ?? 0);
-      setPage(json.page ?? targetPage);
-      setPageSize(json.pageSize ?? pageSize);
+      setPage(json.page ?? request.page);
+      setPageSize(json.pageSize ?? request.pageSize);
     } catch (error) {
       console.error(error);
       setError('Failed to fetch goals. Check the console for details.');
@@ -97,10 +118,22 @@ function App() {
 
   const applyFilters = async () => {
     setPage(1);
-    await fetchGoals(1);
+    await fetchGoals({ page: 1 });
   };
 
   const clearFilters = async () => {
+    const resetState: GoalQueryState = {
+      category: '',
+      titleContains: '',
+      isCompleted: '',
+      dueFrom: '',
+      dueTo: '',
+      sortBy: '',
+      sortDir: 'asc',
+      page: 1,
+      pageSize: 10,
+    };
+
     setCategory('');
     setTitleContains('');
     setIsCompleted('');
@@ -110,7 +143,7 @@ function App() {
     setSortDir('asc');
     setPage(1);
     setPageSize(10);
-    await fetchGoals(1);
+    await fetchGoals(resetState);
   };
 
   if (isLoading) {
@@ -242,13 +275,13 @@ function App() {
               )}
               <div className="pagination">
                 <button
-                  onClick={() => fetchGoals(Math.max(1, page - 1))}
+                  onClick={() => fetchGoals({ page: Math.max(1, page - 1) })}
                   disabled={page <= 1 || isGoalsLoading}
                 >
                   Previous
                 </button>
                 <button
-                  onClick={() => fetchGoals(page + 1)}
+                  onClick={() => fetchGoals({ page: page + 1 })}
                   disabled={page >= (totalPages || 1) || isGoalsLoading}
                 >
                   Next

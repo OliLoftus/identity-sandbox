@@ -28,7 +28,7 @@ public static class Config
                 PostLogoutRedirectUris = { "http://localhost:5173" },
                 AllowedCorsOrigins = { "http://localhost:5173" },
 
-                AllowedScopes = { "openid", "profile", "api1.read", "api1.write" },
+                AllowedScopes = { "openid", "profile", "api1.read", "api1.write", "api1.delete" },
                 AllowAccessTokensViaBrowser = true
             }
         };
@@ -46,7 +46,7 @@ public static class Config
         {
             new ApiResource("api1", "My Protected API")
             {
-                Scopes = { "api1.read", "api1.write" }
+                Scopes = { "api1.read", "api1.write", "api1.delete" }
             }
         };
 

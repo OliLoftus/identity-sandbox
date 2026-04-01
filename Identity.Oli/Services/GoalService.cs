@@ -1,5 +1,6 @@
 using Identity.Oli.Data;
 using Identity.Oli.Models;
+using Identity.Oli.Models.Requests;
 
 namespace Identity.Oli.Services;
 
@@ -18,6 +19,20 @@ public class GoalService : IGoalService
 
         return goals;
     }
+
+    public async Task<List<GoalModel>> GetGoalsAsync(GoalQuery query)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+
+        return await _goalsRepository.GetAllAsync(query);
+    }
+
+    public async Task<(List<GoalModel> Items, long TotalCount)> GetGoalsWithCountAsync(GoalQuery query)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+
+        return await _goalsRepository.GetAllWithCountAsync(query);
+    }
     
     // Get goal by Id.
     public async Task<GoalModel?> GetGoalByIdAsync(Guid id)
@@ -26,10 +41,11 @@ public class GoalService : IGoalService
     }
     
     // Add a new goal to the db.
-    public async Task AddGoalAsync(string title, string description, string category, DateTime dueDate, bool isCompleted)
+    public async Task<GoalModel> AddGoalAsync(string title, string description, string category, DateTime dueDate, bool isCompleted)
     {
         var newGoal = GoalModel.Create(title, description, category, dueDate, isCompleted);
         await _goalsRepository.CreateAsync(newGoal);
+        return newGoal;
     }
 
     // Update existing goal.

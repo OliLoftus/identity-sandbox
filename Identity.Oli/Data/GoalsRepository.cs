@@ -1,4 +1,7 @@
+using System.Text.RegularExpressions;
 using Identity.Oli.Models;
+using Identity.Oli.Models.Requests;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Identity.Oli.Data;
@@ -11,6 +14,109 @@ public class GoalsRepository(MongoDbContext context) : IGoalsRepository
         public async Task<List<GoalModel>> GetAllAsync()
         {
                 return await _goals.Find(_ => true).ToListAsync();
+        }
+
+        public async Task<List<GoalModel>> GetAllAsync(GoalQuery query)
+        {
+                var result = await GetAllInternalAsync(query, includeCount: false);
+                return result.Items;
+        }
+
+        public Task<(List<GoalModel> Items, long TotalCount)> GetAllWithCountAsync(GoalQuery query)
+        {
+                return GetAllInternalAsync(query, includeCount: true);
+        }
+
+        private async Task<(List<GoalModel> Items, long TotalCount)> GetAllInternalAsync(
+                GoalQuery query,
+                bool includeCount)
+        {
+                ArgumentNullException.ThrowIfNull(query);
+
+                var filters = new List<FilterDefinition<GoalModel>>();
+
+                if (!string.IsNullOrWhiteSpace(query.Category))
+                {
+                        var category = Regex.Escape(query.Category.Trim());
+                        var regex = new BsonRegularExpression($"^{category}$", "i");
+                        filters.Add(Builders<GoalModel>.Filter.Regex(goal => goal.Category, regex));
+                }
+
+                if (query.IsCompleted.HasValue)
+                {
+                        filters.Add(Builders<GoalModel>.Filter.Eq(goal => goal.IsCompleted, query.IsCompleted.Value));
+                }
+
+                if (query.DueFrom.HasValue)
+                {
+                        filters.Add(Builders<GoalModel>.Filter.Gte(goal => goal.DueDate, query.DueFrom.Value));
+                }
+
+                if (query.DueTo.HasValue)
+                {
+                        filters.Add(Builders<GoalModel>.Filter.Lte(goal => goal.DueDate, query.DueTo.Value));
+                }
+
+                if (!string.IsNullOrWhiteSpace(query.TitleContains))
+                {
+                        var contains = Regex.Escape(query.TitleContains.Trim());
+                        var regex = new BsonRegularExpression(contains, "i");
+                        filters.Add(Builders<GoalModel>.Filter.Regex(goal => goal.Title, regex));
+                }
+
+                var filter = filters.Count == 0
+                        ? Builders<GoalModel>.Filter.Empty
+                        : Builders<GoalModel>.Filter.And(filters);
+
+                var find = _goals.Find(filter);
+
+                var sort = BuildSort(query);
+                if (sort != null)
+                {
+                        find = find.Sort(sort);
+                }
+
+                if (query.Page.HasValue || query.PageSize.HasValue)
+                {
+                        var page = query.Page ?? 1;
+                        var pageSize = query.PageSize ?? 50;
+                        var skip = (page - 1) * pageSize;
+                        find = find.Skip(skip).Limit(pageSize);
+                }
+
+                var itemsTask = find.ToListAsync();
+                var countTask = includeCount ? _goals.CountDocumentsAsync(filter) : Task.FromResult(0L);
+
+                await Task.WhenAll(itemsTask, countTask);
+                return (itemsTask.Result, countTask.Result);
+        }
+
+        private static SortDefinition<GoalModel>? BuildSort(GoalQuery query)
+        {
+                if (string.IsNullOrWhiteSpace(query.SortBy))
+                {
+                        return null;
+                }
+
+                var sortBy = query.SortBy.Trim().ToLowerInvariant();
+                var descending = query.SortDir?.Trim().Equals("desc", StringComparison.OrdinalIgnoreCase) ?? false;
+
+                return sortBy switch
+                {
+                        "title" => descending
+                                ? Builders<GoalModel>.Sort.Descending(goal => goal.Title)
+                                : Builders<GoalModel>.Sort.Ascending(goal => goal.Title),
+                        "category" => descending
+                                ? Builders<GoalModel>.Sort.Descending(goal => goal.Category)
+                                : Builders<GoalModel>.Sort.Ascending(goal => goal.Category),
+                        "duedate" => descending
+                                ? Builders<GoalModel>.Sort.Descending(goal => goal.DueDate)
+                                : Builders<GoalModel>.Sort.Ascending(goal => goal.DueDate),
+                        "iscompleted" => descending
+                                ? Builders<GoalModel>.Sort.Descending(goal => goal.IsCompleted)
+                                : Builders<GoalModel>.Sort.Ascending(goal => goal.IsCompleted),
+                        _ => null
+                };
         }
         
         public async Task<GoalModel> GetByIdAsync(Guid id)
